@@ -1,25 +1,26 @@
-# $obj = & "$($PSScriptRoot)\classes\CevioNote.ps1" 333 666 99 '‚ð'
+# $obj = & "$($PSScriptRoot)\classes\CevioNote.ps1" 333 666 99 'ï¿½ï¿½'
 # Write-Host $obj.x
 # Write-Host $obj.y
 # Write-Host $obj.width
 # Write-Host $obj.char
 
-[int] $barWidth = 768 # 80 / 128 ?
-[int] $noteHeight = 24
-[int] $startX = 100
-[int] $endX = 1752
-[int] $startY = 1008
+[double] $barWidth = 441 # 80 / 128 ?
+[double] $noteHeight = 18
+[double] $shortestNote = 16 # 1 / 16, not pixel
+[double] $startX = 87
+[double] $endX = 1845
+[double] $startY = 600
 [int] $notes = 6
 [int] $interval = 50 # msec 
+[int] $blankRatio = 30 # X / 100
 
-[int[]] $noteTypes = @(2, 4, 8, 16)
-[int[]] $noteTypeWeightRatio = @(2, 4, 6, 2)
-[int[]] $noteLengthArray = & "$($PSScriptRoot)\modules\getNoteLengthOrderArray.ps1" $noteTypes $noteTypeWeightRatio $notes
+# [int[]] $noteTypes = @(2, 4, 8, 16)
+# [int[]] $noteTypeWeightRatio = @(2, 4, 6, 2)
+# [int[]] $noteLengthArray = & "$($PSScriptRoot)\modules\getNoteLengthOrderArray.ps1" $noteTypes $noteTypeWeightRatio $notes
 
 [int[]] $upperLowerRatio = @(1, 1)
 [int[]] $upperNoteWeightRatio = @(6, 3, 2, 1, 1, 1, 1, 1)
 [int[]] $lowerNoteWeightRatio = @(6, 3, 2, 1, 1, 1, 1, 1)
-# [int[]] $scaleArray = @(0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23)
 [int[]] $scaleArray = @(0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23)
 [int[]] $noteNumsY = & "$($PSScriptRoot)\modules\getNoteNumsY.ps1" $upperLowerRatio $upperNoteWeightRatio $lowerNoteWeightRatio $notes
 
@@ -54,8 +55,9 @@ function createClasses(){
     $classes = @()
     for($i = 0; $i -lt $notes; $i++){
         $y = $startY - ($noteHeight * $scaleArray[$noteNumsY[$i] + 1])
-        $w = $barWidth / $noteLengthArray[$i]
-        $classes += & "$($PSScriptRoot)\classes\CevioNote.ps1" $i $xSum $y $w '‚ç'
+        # $w = $barWidth / $noteLengthArray[$i]
+        $w = $barWidth / $shortestNote
+        $classes += & "$($PSScriptRoot)\classes\CevioNote.ps1" $i $xSum $y $w
         $xSum += $w
     }
     return $classes
@@ -63,27 +65,15 @@ function createClasses(){
 
 function writeNote($class){
     # [int] $distance = 35 # 95-96/43 (SynthV.note.length)
-    [int] $distance = $class.width * 3 / 8
-    if($class.id -eq 0){
-        $distance *= 1.3
-    }
+    # [int] $distance = $class.width * 3 / 8
+    # if($class.id -eq 0){
+    #     $distance *= 1.3
+    # }
+    # [double] $note = $barWidth / $shortestNote;
     [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point($class.x, $class.y)
     Start-Sleep -m $interval
     $SendMouseEvent::mouse_event($MouseLeftDown, 0, 0, 0, 0);
-    Start-Sleep -m $interval
-    $SendMouseEvent::mouse_event($MouseMove, $distance, 0, 0, 0)
-    Start-Sleep -m $interval
     $SendMouseEvent::mouse_event($MouseLeftUp, 0, 0, 0, 0);
-    Start-Sleep -m $interval
-    $SendMouseEvent::mouse_event($MouseMove, -15, 0, 0, 0)
-    Start-Sleep -m $interval
-    $SendMouseEvent::mouse_event($MouseLeftDown, 0, 0, 0, 0);
-    $SendMouseEvent::mouse_event($MouseLeftUp, 0, 0, 0, 0);
-    $SendMouseEvent::mouse_event($MouseLeftDown, 0, 0, 0, 0);
-    $SendMouseEvent::mouse_event($MouseLeftUp, 0, 0, 0, 0);
-    [System.Windows.Forms.SendKeys]::SendWait($class.char)
-    [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
-    [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
     Start-Sleep -m $interval
 }
 
@@ -91,11 +81,14 @@ $classArray = createClasses
 
 # change window
 add-type -assembly microsoft.visualbasic
-[microsoft.visualbasic.interaction]::AppActivate("CeVIO AI")
+[microsoft.visualbasic.interaction]::AppActivate("FL Studio")
 Start-Sleep -m 3000
 
 for($i = 0; $i -lt $classArray.length; $i++){
-    writeNote $classArray[$i]
+    $random = Get-Random -Maximum 100 -Minimum 1
+    if($random -lt $blankRatio){
+        writeNote $classArray[$i]
+    }
 }
 
 [System.Windows.Forms.SendKeys]::SendWait(" ")
