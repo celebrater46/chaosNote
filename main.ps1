@@ -1,0 +1,1 @@
+if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole("Administrators")) { Start-Process powershell.exe "-File `".\autoCevio.ps1`"" -Verb RunAs; exit }
