@@ -3,13 +3,13 @@
 [int] $y = $args[2]
 [int] $width = $args[3]
 
-class CevioNote{
+class Note{
     [int] $id = 0
     [int] $x = 960
     [int] $y = 540
     [int] $width = 96
 
-    CevioNote($id, $x, $y, $width){
+    Note($id, $x, $y, $width){
         $this.id = $id
         $this.x = $x
         $this.y = $y
@@ -17,5 +17,5 @@ class CevioNote{
     }
 }
 
-$cn = [CevioNote]::new($id, $x, $y, $width)
+$cn = [Note]::new($id, $x, $y, $width)
 return $cn

@@ -10,8 +10,9 @@
 [double] $startX = 87
 [double] $endX = 1845
 [double] $startY = 600
-[int] $notes = 6
-[int] $interval = 50 # msec 
+[int] $maxBar = 4
+[int] $notes = $shortestNote * $maxBar
+[int] $interval = 3 # msec 
 [int] $blankRatio = 30 # X / 100
 
 # [int[]] $noteTypes = @(2, 4, 8, 16)
@@ -57,7 +58,7 @@ function createClasses(){
         $y = $startY - ($noteHeight * $scaleArray[$noteNumsY[$i] + 1])
         # $w = $barWidth / $noteLengthArray[$i]
         $w = $barWidth / $shortestNote
-        $classes += & "$($PSScriptRoot)\classes\CevioNote.ps1" $i $xSum $y $w
+        $classes += & "$($PSScriptRoot)\classes\Note.ps1" $i $xSum $y $w
         $xSum += $w
     }
     return $classes
@@ -80,8 +81,12 @@ function writeNote($class){
 $classArray = createClasses
 
 # change window
-add-type -assembly microsoft.visualbasic
-[microsoft.visualbasic.interaction]::AppActivate("FL Studio")
+# add-type -assembly microsoft.visualbasic
+# [microsoft.visualbasic.interaction]::AppActivate("FL Studio")
+
+# back to the previous window
+# ALT + TAB (move to the previous window)
+[System.Windows.Forms.SendKeys]::SendWait("%{TAB}")
 Start-Sleep -m 3000
 
 for($i = 0; $i -lt $classArray.length; $i++){
