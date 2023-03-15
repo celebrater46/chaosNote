@@ -14,6 +14,16 @@
 [int] $notes = $shortestNote * $maxBar
 [int] $interval = 3 # msec 
 [int] $blankRatio = 30 # X / 100
+[string] $mode = "melody" # melody / drum / bass / chord / rhythmAndChord
+
+# -1 = random, (pattern, Y)
+$drumPattern = @{
+    "bars" = 1
+    "oh" = @(@(1, 0), 14)
+    "ch" = @(@(1,1,1,1,1,1,1,1), 6)
+    "snare" = @(@(0, 1, 0, 1), 2)
+    "kick" = @(@(1, 1, 1, 1), 0)
+}
 
 # [int[]] $noteTypes = @(2, 4, 8, 16)
 # [int[]] $noteTypeWeightRatio = @(2, 4, 6, 2)
@@ -23,7 +33,8 @@
 [int[]] $upperNoteWeightRatio = @(6, 3, 2, 1, 1, 1, 1, 1)
 [int[]] $lowerNoteWeightRatio = @(6, 3, 2, 1, 1, 1, 1, 1)
 [int[]] $scaleArray = @(0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23)
-[int[]] $noteNumsY = & "$($PSScriptRoot)\modules\getNoteNumsY.ps1" $upperLowerRatio $upperNoteWeightRatio $lowerNoteWeightRatio $notes
+# [int[]] $noteNumsY = & "$($PSScriptRoot)\modules\getNoteNumsY.ps1" $upperLowerRatio $upperNoteWeightRatio $lowerNoteWeightRatio $notes
+[int[]] $noteNumsY = getNoteNumsY()
 
 # disable mouse temporary
 $Win32 = &{
@@ -51,15 +62,33 @@ $MouseMove = 0x00000001
 $MouseLeftDown = 0x0002
 $MouseLeftUp = 0x0004
 
+function getNoteNumsY(){
+    [int[]] $arr = @()
+    if($mode -eq "drum"){
+        foreach($note in $notes){
+            $arr += 0
+        }
+    } else {
+        $arr += & "$($PSScriptRoot)\modules\getNoteNumsY.ps1" $upperLowerRatio $upperNoteWeightRatio $lowerNoteWeightRatio $notes
+    }
+    return $arr
+}
+
 function createClasses(){
     $xSum = $startX
     $classes = @()
-    for($i = 0; $i -lt $notes; $i++){
-        $y = $startY - ($noteHeight * $scaleArray[$noteNumsY[$i] + 1])
-        # $w = $barWidth / $noteLengthArray[$i]
-        $w = $barWidth / $shortestNote
-        $classes += & "$($PSScriptRoot)\classes\Note.ps1" $i $xSum $y $w
-        $xSum += $w
+    if($mode -eq "drum"){
+        foreach($key in $drumPattern.Keys[0]){
+            $val = $drumPattern[$key];
+        }
+    } else {
+        for($i = 0; $i -lt $notes; $i++){
+            $y = $startY - ($noteHeight * $scaleArray[$noteNumsY[$i] + 1])
+            # $w = $barWidth / $noteLengthArray[$i]
+            $w = $barWidth / $shortestNote
+            $classes += & "$($PSScriptRoot)\classes\Note.ps1" $i $xSum $y $w
+            $xSum += $w
+        }
     }
     return $classes
 }
