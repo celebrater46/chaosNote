@@ -1,8 +1,3 @@
-# $obj = & "$($PSScriptRoot)\classes\CevioNote.ps1" 333 666 99 '��'
-# Write-Host $obj.x
-# Write-Host $obj.y
-# Write-Host $obj.width
-# Write-Host $obj.char
 [double] $barWidth = 441 # 80 / 128 ?
 [double] $noteHeight = 18
 [double] $shortestNote = 16 # 1 / 16, not pixel
@@ -10,12 +5,13 @@
 [double] $endX = 1845
 [double] $startY = 600
 [int] $maxBar = 4
+[int] $tempo = 120
+[int] $times = 3
 [int] $notes = $shortestNote * $maxBar
-[int] $interval = 3 # msec 
-[int] $blankRatio = 0 # X / 100
+[int] $interval = 1 # msec 
+[int] $blankRatio = 30 # X / 100
 [string] $mode = "melody" # melody / drum / bass / chord / rhythmAndChord
 
-# -1 = random, (pattern, Y)
 $drumPattern = @{
     "bars" = 1
     "oh" = @{
@@ -40,15 +36,10 @@ $drumPattern = @{
     }
 }
 
-# [int[]] $noteTypes = @(2, 4, 8, 16)
-# [int[]] $noteTypeWeightRatio = @(2, 4, 6, 2)
-# [int[]] $noteLengthArray = & "$($PSScriptRoot)\modules\getNoteLengthOrderArray.ps1" $noteTypes $noteTypeWeightRatio $notes
-
 [int[]] $upperLowerRatio = @(1, 1)
 [int[]] $upperNoteWeightRatio = @(6, 3, 2, 1, 1, 1, 1, 1)
 [int[]] $lowerNoteWeightRatio = @(6, 3, 2, 1, 1, 1, 1, 1)
 [int[]] $scaleArray = @(0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23)
-# [int[]] $noteNumsY = & "$($PSScriptRoot)\modules\getNoteNumsY.ps1" $upperLowerRatio $upperNoteWeightRatio $lowerNoteWeightRatio $notes
 
 function getNoteNumsY(){
     [int[]] $arr = @()
@@ -124,9 +115,19 @@ function writeNote($class){
     [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point($class.x, $class.y)
     Start-Sleep -m $interval
     $SendMouseEvent::mouse_event($MouseLeftDown, 0, 0, 0, 0);
-    Start-Sleep -m 1
+    # Start-Sleep -m 1
     $SendMouseEvent::mouse_event($MouseLeftUp, 0, 0, 0, 0);
     Start-Sleep -m $interval
+}
+
+function writeNotes(){
+    for($i = 0; $i -lt $classArray.length; $i++){
+        $random = Get-Random -Maximum 100 -Minimum 1
+        if($random -gt $blankRatio){
+            writeNote $classArray[$i]
+        }
+        # writeNote $classArray[$i]
+    }
 }
 
 $classArray = createClasses
@@ -140,12 +141,22 @@ $classArray = createClasses
 [System.Windows.Forms.SendKeys]::SendWait("%{TAB}")
 Start-Sleep -m 3000
 
-for($i = 0; $i -lt $classArray.length; $i++){
-    $random = Get-Random -Maximum 100 -Minimum 1
-    if($random -gt $blankRatio){
-        writeNote $classArray[$i]
-    }
-    # writeNote $classArray[$i]
+
+
+for ($j=0; $j -lt $times; $j++){
+    # Wipe the old notes out
+    [System.Windows.Forms.SendKeys]::SendWait("^{a}")
+    Start-Sleep -m $interval
+    [System.Windows.Forms.SendKeys]::SendWait("{DELETE}")
+    Start-Sleep -m $interval
+
+    writeNotes
+
+    # the interval for playing once
+    [System.Windows.Forms.SendKeys]::SendWait(" ")
+    Start-Sleep -m ((($tempo / 60) * $maxBar * 1000) + 50) 
+    [System.Windows.Forms.SendKeys]::SendWait(" ")
+    Start-Sleep -m $interval
 }
 
 [System.Windows.Forms.SendKeys]::SendWait(" ")
