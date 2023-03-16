@@ -6,11 +6,11 @@
 [double] $startY = 600
 [int] $maxBar = 4
 [int] $tempo = 120
-[int] $times = 3
+[int] $times = 1
 [int] $notes = $shortestNote * $maxBar
 [int] $interval = 1 # msec 
 [int] $blankRatio = 30 # X / 100
-[string] $mode = "melody" # melody / drum / bass / chord / rhythmAndChord
+[string] $mode = "drum" # melody / drum / bass / chord / rhythmAndChord
 
 $drumPattern = @{
     "bars" = 1
@@ -81,7 +81,7 @@ $MouseMove = 0x00000001
 $MouseLeftDown = 0x0002
 $MouseLeftUp = 0x0004
 
-function createOneInstrumentClass($pattern, $preX, $y){
+function createOneInstrumentClass($obj, $preX){
     $xSum = $preX
     $classes = @()
     for($i = 0; $i -lt $pattern.Length; $i++){
@@ -96,7 +96,10 @@ function createOneInstrumentClass($pattern, $preX, $y){
         $classes += & "$($PSScriptRoot)\classes\Note.ps1" $i $xSum $y $w
         $xSum += $w
     }
-    return $classes
+    return @{
+        "classes" = $classes
+        "xSum" = $xSum
+    }
 }
 
 function createClassesForDrum(){
@@ -104,10 +107,12 @@ function createClassesForDrum(){
     $classes = @{}
     foreach($key in $drumPattern.Keys[0]){
         # $val = $drumPattern[$key];
+        $tempObj = createOneInstrumentClass $drumPattern[$key] $xSum
         $classes += @{
             "instrument" = $key
-            "pattern" = $drumPattern[$key]
+            "classes" = $tempObj.classes
         }
+        $xSum = $tempObj.xSum
     }
     return $classes
 }
