@@ -81,25 +81,32 @@ $MouseMove = 0x00000001
 $MouseLeftDown = 0x0002
 $MouseLeftUp = 0x0004
 
+function createClassesForDrum(){
+    $xSum = $startX
+    $classes = @{}
+    foreach($key in $drumPattern.Keys[0]){
+        # $val = $drumPattern[$key];
+        $classes += @{
+            "instrument" = $key
+            "pattern" = $drumPattern[$key]
+        }
+    }
+    return $classes
+}
+
 function createClasses(){
     $xSum = $startX
     $classes = @()
-    if($mode -eq "drum"){
-        # foreach($key in $drumPattern.Keys[0]){
-        #     $val = $drumPattern[$key];
-        # }
-    } else {
-        for($i = 0; $i -lt $notes; $i++){
-            $y = $startY - ($noteHeight * $scaleArray[$noteNumsY[$i] + 1])
-            $w = [math]::Floor($barWidth / $shortestNote)
-            if($i % $shortestNote -eq 0){
-                # add the correction number once per 1 bar
-                $correctionNum = $shortestNote % $maxBar
-                $w += $correctionNum
-            }
-            $classes += & "$($PSScriptRoot)\classes\Note.ps1" $i $xSum $y $w
-            $xSum += $w
+    for($i = 0; $i -lt $notes; $i++){
+        $y = $startY - ($noteHeight * $scaleArray[$noteNumsY[$i] + 1])
+        $w = [math]::Floor($barWidth / $shortestNote)
+        if($i % $shortestNote -eq 0){
+            # add the correction number once per 1 bar
+            $correctionNum = $shortestNote % $maxBar
+            $w += $correctionNum
         }
+        $classes += & "$($PSScriptRoot)\classes\Note.ps1" $i $xSum $y $w
+        $xSum += $w
     }
     return $classes
 }
