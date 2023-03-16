@@ -91,7 +91,6 @@ function createClasses(){
     } else {
         for($i = 0; $i -lt $notes; $i++){
             $y = $startY - ($noteHeight * $scaleArray[$noteNumsY[$i] + 1])
-            # $w = $barWidth / $noteLengthArray[$i]
             $w = [math]::Floor($barWidth / $shortestNote)
             if($i % $shortestNote -eq 0){
                 # add the correction number once per 1 bar
@@ -106,16 +105,9 @@ function createClasses(){
 }
 
 function writeNote($class){
-    # [int] $distance = 35 # 95-96/43 (SynthV.note.length)
-    # [int] $distance = $class.width * 3 / 8
-    # if($class.id -eq 0){
-    #     $distance *= 1.3
-    # }
-    # [double] $note = $barWidth / $shortestNote;
     [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point($class.x, $class.y)
     Start-Sleep -m $interval
     $SendMouseEvent::mouse_event($MouseLeftDown, 0, 0, 0, 0);
-    # Start-Sleep -m 1
     $SendMouseEvent::mouse_event($MouseLeftUp, 0, 0, 0, 0);
     Start-Sleep -m $interval
 }
@@ -126,7 +118,6 @@ function writeNotes(){
         if($random -gt $blankRatio){
             writeNote $classArray[$i]
         }
-        # writeNote $classArray[$i]
     }
 }
 
@@ -161,8 +152,8 @@ for ($j=0; $j -lt $times; $j++){
 
 [System.Windows.Forms.SendKeys]::SendWait(" ")
 
-Write-Host "classArray:"
+# Write-Host "classArray:"
 # Write-Host $classArray
-foreach($class in $classArray){
-    Write-Host $class.x
-}
+# foreach($class in $classArray){
+#     Write-Host $class.x
+# }
