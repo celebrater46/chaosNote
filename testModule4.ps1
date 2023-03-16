@@ -81,6 +81,24 @@ $MouseMove = 0x00000001
 $MouseLeftDown = 0x0002
 $MouseLeftUp = 0x0004
 
+function createOneInstrumentClass($pattern, $preX, $y){
+    $xSum = $preX
+    $classes = @()
+    for($i = 0; $i -lt $pattern.Length; $i++){
+        # $y = $startY - ($noteHeight * $scaleArray[$noteNumsY[$i] + 1])
+        # $w = [math]::Floor($barWidth / $shortestNote)
+        $w = [math]::Floor($barWidth / $pattern.Length)
+        if($i % $pattern.Length -eq 0){
+            # add the correction number once per 1 bar
+            $correctionNum = $pattern.Length % $maxBar
+            $w += $correctionNum
+        }
+        $classes += & "$($PSScriptRoot)\classes\Note.ps1" $i $xSum $y $w
+        $xSum += $w
+    }
+    return $classes
+}
+
 function createClassesForDrum(){
     $xSum = $startX
     $classes = @{}
@@ -128,7 +146,11 @@ function writeNotes(){
     }
 }
 
-$classArray = createClasses
+if($mode -eq "drum"){
+    $classArray = createClassesForDrum
+} else {
+    $classArray = createClasses
+}
 
 # change window
 # add-type -assembly microsoft.visualbasic
