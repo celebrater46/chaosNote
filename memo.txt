@@ -1,0 +1,3 @@
+It the notes are too short, notes of the same height may not be put.
+This is caused by clicking the end of the previous note.
+The solution is to use shorter 32nd notes, for example for 4 bars 16th note.
