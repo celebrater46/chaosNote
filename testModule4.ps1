@@ -86,11 +86,7 @@ function createOneInstrumentClass($obj, $preX){
     $classArray = @()
     $pattern = $obj.pattern
     for($i = 0; $i -lt $pattern.Length; $i++){
-        # $y = $startY - ($noteHeight * $scaleArray[$noteNumsY[$i] + 1])
         $y = $startY - ($noteHeight * $obj.y)
-        Write-Host "y in COIC"
-        Write-Host $y
-        # $w = [math]::Floor($barWidth / $shortestNote)
         $w = [math]::Floor($barWidth / $pattern.Length)
         if($i % $pattern.Length -eq 0){
             # add the correction number once per 1 bar
@@ -100,8 +96,6 @@ function createOneInstrumentClass($obj, $preX){
         $class = & "$($PSScriptRoot)\classes\Note.ps1" $i $xSum $y $w
         $classArray += $class
         $xSum += $w
-        # Write-Host "class in CCFD"
-        # Write-Host $class.x
     }
     return @{
         "classArray" = $classArray # @()
@@ -113,16 +107,8 @@ function createClassesForDrum(){
     $xSum = $startX
     $classObj = @{}
     foreach($key in $drumPattern.Keys){
-        # $val = $drumPattern[$key];
         $tempObj = createOneInstrumentClass $drumPattern[$key] $xSum
-        # $classes += @{
-        #     "instrument" = $key
-        #     "classArr" = $tempObj.classes
-        # }
         $classObj[$key] = $tempObj.classArray
-        # $xSum = $tempObj.xSum
-        # Write-Host "tempObj in CCFD"
-        # Write-Host $tempObj
     }
     return $classObj
 }
@@ -191,10 +177,6 @@ if($mode -eq "drum"){
 # back to the previous window
 # ALT + TAB (move to the previous window)
 
-
-
-
-
 [System.Windows.Forms.SendKeys]::SendWait("%{TAB}")
 Start-Sleep -m 3000
 
@@ -223,10 +205,6 @@ for ($j=0; $j -lt $times; $j++){
 }
 
 [System.Windows.Forms.SendKeys]::SendWait(" ")
-
-
-
-
 
 # Write-Host "classArray:"
 # Write-Host $classArray
