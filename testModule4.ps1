@@ -4,35 +4,35 @@
 [double] $startX = 97
 [double] $endX = 1845
 [double] $startY = 600
-[int] $maxBar = 4
+[int] $maxBar = 4 # not for drum
 [int] $tempo = 120
-[int] $times = 1
+[int] $times = 4
 [int] $notes = $shortestNote * $maxBar
 [int] $interval = 1 # msec 
 [int] $blankRatio = 30 # X / 100
 [string] $mode = "drum" # melody / drum / bass / chord / rhythmAndChord
 
+[int] $maxBarForDrum = 1
 $drumPattern = @{
-    "bars" = 1
     "oh" = @{
-        pattern = @(1, 0)
-        y = 14
-        isRandom = $FALSE
+        "pattern" = @(1, 0)
+        "y" = 14
+        "isRandom" = $FALSE
     }
     "ch" = @{
-        pattern = @(1,1,1,1,1,1,1,1)
-        y = 6
-        isRandom = $FALSE
+        "pattern" = @(1,1,1,1,1,1,1,1)
+        "y" = 6
+        "isRandom" = $FALSE
     }
     "snare" = @{
-        pattern = @(0, 1, 0, 1)
-        y = 2
-        isRandom = $FALSE
+        "pattern" = @(1,1,1,1,1,1,1,1)
+        "y" = 2
+        "isRandom" = $FALSE
     }
     "kick" = @{
-        pattern = @(1, 1, 1, 1)
-        y = 0
-        isRandom = $FALSE
+        "pattern" = @(1,1,1,1,1,1,1,1)
+        "y" = 0
+        "isRandom" = $FALSE
     }
 }
 
@@ -83,9 +83,13 @@ $MouseLeftUp = 0x0004
 
 function createOneInstrumentClass($obj, $preX){
     $xSum = $preX
-    $classes = @()
+    $classArray = @()
+    $pattern = $obj.pattern
     for($i = 0; $i -lt $pattern.Length; $i++){
         # $y = $startY - ($noteHeight * $scaleArray[$noteNumsY[$i] + 1])
+        $y = $startY - ($noteHeight * $obj.y)
+        Write-Host "y in COIC"
+        Write-Host $y
         # $w = [math]::Floor($barWidth / $shortestNote)
         $w = [math]::Floor($barWidth / $pattern.Length)
         if($i % $pattern.Length -eq 0){
@@ -93,28 +97,34 @@ function createOneInstrumentClass($obj, $preX){
             $correctionNum = $pattern.Length % $maxBar
             $w += $correctionNum
         }
-        $classes += & "$($PSScriptRoot)\classes\Note.ps1" $i $xSum $y $w
+        $class = & "$($PSScriptRoot)\classes\Note.ps1" $i $xSum $y $w
+        $classArray += $class
         $xSum += $w
+        # Write-Host "class in CCFD"
+        # Write-Host $class.x
     }
     return @{
-        "classes" = $classes
-        "xSum" = $xSum
+        "classArray" = $classArray # @()
+        "xSum" = $xSum #739
     }
 }
 
 function createClassesForDrum(){
     $xSum = $startX
-    $classes = @{}
-    foreach($key in $drumPattern.Keys[0]){
+    $classObj = @{}
+    foreach($key in $drumPattern.Keys){
         # $val = $drumPattern[$key];
         $tempObj = createOneInstrumentClass $drumPattern[$key] $xSum
-        $classes += @{
-            "instrument" = $key
-            "classes" = $tempObj.classes
-        }
-        $xSum = $tempObj.xSum
+        # $classes += @{
+        #     "instrument" = $key
+        #     "classArr" = $tempObj.classes
+        # }
+        $classObj[$key] = $tempObj.classArray
+        # $xSum = $tempObj.xSum
+        # Write-Host "tempObj in CCFD"
+        # Write-Host $tempObj
     }
-    return $classes
+    return $classObj
 }
 
 function createClasses(){
@@ -128,7 +138,8 @@ function createClasses(){
             $correctionNum = $shortestNote % $maxBar
             $w += $correctionNum
         }
-        $classes += & "$($PSScriptRoot)\classes\Note.ps1" $i $xSum $y $w
+        $class = & "$($PSScriptRoot)\classes\Note.ps1" $i $xSum $y $w
+        $classes += $class
         $xSum += $w
     }
     return $classes
@@ -151,8 +162,24 @@ function writeNotes(){
     }
 }
 
+function writeNotesForDrum(){
+    Write-Host "class in WNFD"
+    Write-Host $classObj
+    foreach($key in $classObj.Keys){
+        $random = Get-Random -Maximum 100 -Minimum 1
+        for($i = 0; $i -lt $classObj[$key].length; $i++){
+            $random = Get-Random -Maximum 100 -Minimum 1
+            if($random -gt $blankRatio){
+                writeNote $classObj[$key][$i]
+                Write-Host "class[key][i].y in WNFD"
+                Write-Host $classObj[$key][$i].y
+            }
+        }
+    }
+}
+
 if($mode -eq "drum"){
-    $classArray = createClassesForDrum
+    $classObj = createClassesForDrum
 } else {
     $classArray = createClasses
 }
@@ -163,10 +190,13 @@ if($mode -eq "drum"){
 
 # back to the previous window
 # ALT + TAB (move to the previous window)
+
+
+
+
+
 [System.Windows.Forms.SendKeys]::SendWait("%{TAB}")
 Start-Sleep -m 3000
-
-
 
 for ($j=0; $j -lt $times; $j++){
     # Wipe the old notes out
@@ -175,16 +205,28 @@ for ($j=0; $j -lt $times; $j++){
     [System.Windows.Forms.SendKeys]::SendWait("{DELETE}")
     Start-Sleep -m $interval
 
-    writeNotes
+    if($mode -eq "drum"){
+        writeNotesForDrum
+    } else {
+        writeNotes
+    }
 
     # the interval for playing once
     [System.Windows.Forms.SendKeys]::SendWait(" ")
-    Start-Sleep -m ((($tempo / 60) * $maxBar * 1000) + 50) 
+    if($mode -eq "drum"){
+        Start-Sleep -m ((($tempo / 60) * $maxBarForDrum * 1000) + 50) 
+    } else {
+        Start-Sleep -m ((($tempo / 60) * $maxBar * 1000) + 50) 
+    }
     [System.Windows.Forms.SendKeys]::SendWait(" ")
     Start-Sleep -m $interval
 }
 
 [System.Windows.Forms.SendKeys]::SendWait(" ")
+
+
+
+
 
 # Write-Host "classArray:"
 # Write-Host $classArray
