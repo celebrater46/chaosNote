@@ -21,6 +21,7 @@ $drumPattern = @{
     "snare" =  & "$($PSScriptRoot)\classes\Instrument.ps1" 2 "snare" 2 4 50 @(0)
     "kick" =  & "$($PSScriptRoot)\classes\Instrument.ps1" 3 "kick" 0 16 30 @(0)
 }
+# Chord id nth name scale x
 
 [int[]] $upperLowerRatio = @(1, 1)
 [int[]] $upperNoteWeightRatio = @(6, 3, 2, 1, 1, 1, 1, 1)
