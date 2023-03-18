@@ -9,8 +9,8 @@
 [int] $times = 1
 [int] $notes = $shortestNote * $maxBar
 [int] $interval = 1 # msec 
-[int] $blankRatio = 30 # X / 100
-[string] $mode = "drum" # melody / drum / bass / chord / rhythmAndChord
+[int] $blankRatio = 0 # X / 100
+[string] $mode = "chord" # melody / drum / bass / chord / rhythmAndChord
 $classArray = @()
 
 [int] $maxBarForDrum = 1
@@ -19,7 +19,7 @@ $drumPattern = @{
     "oh" = & "$($PSScriptRoot)\classes\Instrument.ps1" 0 "oh" 14 0 0 @(1,0)
     "ch" = & "$($PSScriptRoot)\classes\Instrument.ps1" 1 "ch" 6 16 30 @(0)
     "snare" =  & "$($PSScriptRoot)\classes\Instrument.ps1" 2 "snare" 2 4 50 @(0)
-    "kick" =  & "$($PSScriptRoot)\classes\Instrument.ps1" 3 "kick" 0 16 30 @(0)
+    "kick" =  & "$($PSScriptRoot)\classes\Instrument.ps1" 3 "kick" 0 16 70 @(0)
 }
 
 $chordPattern = @{
@@ -36,12 +36,12 @@ $chordPattern = @{
 
 function getNoteNumsY(){
     [int[]] $arr = @()
-    if($mode -eq "drum"){
+    if($mode -eq "melody"){
+        $arr += & "$($PSScriptRoot)\modules\getNoteNumsY.ps1" $upperLowerRatio $upperNoteWeightRatio $lowerNoteWeightRatio $notes
+    } else {
         foreach($note in $notes){
             $arr += 0
         }
-    } else {
-        $arr += & "$($PSScriptRoot)\modules\getNoteNumsY.ps1" $upperLowerRatio $upperNoteWeightRatio $lowerNoteWeightRatio $notes
     }
     return $arr
 }
@@ -75,12 +75,24 @@ $MouseLeftDown = 0x0002
 $MouseLeftUp = 0x0004
 
 function createChordClasses(){
-    # $xSum = $startX
+    $xSum = $startX
     $tempClassArray = @()
+    $i = 0
     foreach($num in $chordPattern.progress){
         # Chord id nth name scale x width(1/x) $rhythm isArpeggio
-        $chord = & "$($PSScriptRoot)\classes\Chord.ps1" 0 $num "diatonic" "major" 90 1 $chordPattern.rhythm $chordPattern.isArpeggio
+        $chord = & "$($PSScriptRoot)\classes\Chord.ps1" 0 $num "diatonic" "major" $xSum 1 $chordPattern.rhythm $chordPattern.isArpeggio
         $tempClassArray += $chord
+        $chordWidthDot = [math]::Floor($barWidth / $chordPattern.width)
+        # $xSum += [math]::Floor($chordWidthDot / $chordPattern.rhythm.Length)
+        $xSum += $chordWidthDot
+        # if($i % $chordPattern.rhythm.Length -eq 0){
+        #     # add the correction number once per 1 bar
+        #     $correctionNum = $chordPattern.rhythm.Length % $chordWidthDot
+        #     $xSum += $correctionNum
+        # }
+        $i++
+        # Write-Host "chordClass in CCC"
+        # Write-Host $chord.x
     }
     return $tempClassArray
 }
@@ -106,22 +118,34 @@ function createNoteArrayForOneInstrument($obj){
 }
 
 function createNoteClassesForChord(){
-    $xSum = $startX
+    # $xSum = $startX
     $chordClasses = createChordClasses
     $noteClasses = @()
     $i = 0
     foreach($chordClass in $chordClasses){
         foreach($y in $chordClass.ys){
-            $tempY = $y * $noteHeight
-            foreach($n in $chordClass.rhythm){
-                $tempW = $chordPattern.width / $chordClass.rhythm.Length
-                $noteClasses += & "$($PSScriptRoot)\classes\Note.ps1" $i $xSum $tempY $tempW
+            $tempY = $startY - ($y * $noteHeight)
+            for($n = 0; $n -lt $chordClass.rhythm.Length; $n++){
+                $tempW = ($barWidth * $chordPattern.width) / $chordClass.rhythm.Length
+                $tempX = $chordClass.x + ($tempW * ($n))
+                $noteClass = & "$($PSScriptRoot)\classes\Note.ps1" $i $tempX $tempY $tempW
+                $noteClasses += $noteClass
                 $i++
+                # Write-Host "tempY in CCFC"
+                # Write-Host $tempY
+                # Write-Host "chordClass.x in CCFC"
+                # Write-Host $chordClass.x
+                Write-Host "noteClass.x in CCFC"
+                Write-Host $noteClass.x
+                # Write-Host "tempX in CCFC"
+                # Write-Host $tempX
+                # Write-Host "tempW in CCFC"
+                # Write-Host $tempW
             }
         }
         # $instrument = createNoteArrayForOneInstrument $drumPattern[$key]
         # $tempClassArray += $instrument
-        $xSum += $barWidth / $chordPattern.width
+        # $xSum += $barWidth / $chordPattern.width
     }
     return $noteClasses
 }
@@ -184,7 +208,6 @@ if($mode -eq "chord"){
 
 # back to the previous window
 # ALT + TAB (move to the previous window)
-
 [System.Windows.Forms.SendKeys]::SendWait("%{TAB}")
 Start-Sleep -m 3000
 

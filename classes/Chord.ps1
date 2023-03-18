@@ -10,6 +10,7 @@
 $chords = @{
     "major" = @(0, 4, 7)
     "minor" = @(0, 3, 7)
+    "minor-5" = @(0, 3, 6)
     "7" = @(0, 4, 7, 10)
     "7+5" = @(0, 4, 8, 10)
     "7-5" = @(0, 4, 6, 10)
@@ -39,8 +40,8 @@ $chords = @{
     "-9_13" = @(0, 4, 7, 13, 21)
 }
 $diatonicChords = @{
-    "major" = @("major", "minor", "minor", "major", "major", "minor", "minor7-5")
-    "minor" = @("minor", "minor7-5", "major", "minor", "minor", "major", "major")
+    "major" = @("major", "minor", "minor", "major", "major", "minor", "minor-5")
+    "minor" = @("minor", "minor-5", "major", "minor", "minor", "major", "major")
 }
 $scales = @{
     "major" = @(0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23)
@@ -62,7 +63,7 @@ class Chord{
         $this.id = $id
         $this.nth = $nth
         if($name -eq "diatonic"){
-            $this.name = $diatonicChords[$scale][$nth]
+            $this.name = $diatonicChords[$scale][$nth-1]
         } else {
             $this.name = $name
         }
