@@ -6,11 +6,12 @@
 [double] $startY = 600
 [int] $maxBar = 4 # not for drum
 [int] $tempo = 120
-[int] $times = 4
+[int] $times = 1
 [int] $notes = $shortestNote * $maxBar
 [int] $interval = 1 # msec 
 [int] $blankRatio = 30 # X / 100
 [string] $mode = "drum" # melody / drum / bass / chord / rhythmAndChord
+$classArray = @()
 
 [int] $maxBarForDrum = 1
 # Instrument id name y notes blankRatio pattern[]
@@ -88,9 +89,9 @@ $MouseMove = 0x00000001
 $MouseLeftDown = 0x0002
 $MouseLeftUp = 0x0004
 
-function createOneInstrumentClass($obj, $preX){
-    $xSum = $preX
-    $classArray = @()
+function createNoteArrayForOneInstrument($obj){
+    $xSum = $startX
+    $tempClassArray = @()
     $pattern = $obj.pattern
     for($i = 0; $i -lt $pattern.Length; $i++){
         $y = $startY - ($noteHeight * $obj.y)
@@ -101,28 +102,40 @@ function createOneInstrumentClass($obj, $preX){
             $w += $correctionNum
         }
         $class = & "$($PSScriptRoot)\classes\Note.ps1" $i $xSum $y $w
-        $classArray += $class
+        $tempClassArray += $class
         $xSum += $w
     }
-    return @{
-        "classArray" = $classArray # @()
-        "xSum" = $xSum #739
-    }
+    return $tempClassArray # @()
+    # return @{
+    #     "classArray" = $classArray # @()
+    #     "xSum" = $xSum #739
+    # }
 }
+
+# function createClassesForDrum(){
+#     $xSum = $startX
+#     $classObj = @{}
+#     foreach($key in $drumPattern.Keys){
+#         $tempObj = createNoteArrayForOneInstrument $drumPattern[$key] $xSum
+#         $classObj[$key] = $tempObj.classArray
+#     }
+#     return $classObj
+# }
 
 function createClassesForDrum(){
     $xSum = $startX
-    $classObj = @{}
     foreach($key in $drumPattern.Keys){
-        $tempObj = createOneInstrumentClass $drumPattern[$key] $xSum
-        $classObj[$key] = $tempObj.classArray
+        $instrument = createNoteArrayForOneInstrument $drumPattern[$key]
+        $tempClassArray += $instrument
+        # Write-Host "instrument in CCFD"
+        # Write-Host $instrument
     }
-    return $classObj
+    return $tempClassArray
 }
 
 function createClasses(){
     $xSum = $startX
-    $classes = @()
+    $tempClassArray = @()
     for($i = 0; $i -lt $notes; $i++){
         $y = $startY - ($noteHeight * $scaleArray[$noteNumsY[$i] + 1])
         $w = [math]::Floor($barWidth / $shortestNote)
@@ -132,10 +145,10 @@ function createClasses(){
             $w += $correctionNum
         }
         $class = & "$($PSScriptRoot)\classes\Note.ps1" $i $xSum $y $w
-        $classes += $class
+        $tempClassArray += $class
         $xSum += $w
     }
-    return $classes
+    return $tempClassArray
 }
 
 function writeNote($class){
@@ -155,24 +168,24 @@ function writeNotes(){
     }
 }
 
-function writeNotesForDrum(){
-    Write-Host "class in WNFD"
-    Write-Host $classObj
-    foreach($key in $classObj.Keys){
-        $random = Get-Random -Maximum 100 -Minimum 1
-        for($i = 0; $i -lt $classObj[$key].length; $i++){
-            $random = Get-Random -Maximum 100 -Minimum 1
-            if($random -gt $blankRatio){
-                writeNote $classObj[$key][$i]
-                Write-Host "class[key][i].y in WNFD"
-                Write-Host $classObj[$key][$i].y
-            }
-        }
-    }
-}
+# function writeNotesForDrum(){
+#     Write-Host "class in WNFD"
+#     Write-Host $classObj
+#     foreach($key in $classObj.Keys){
+#         $random = Get-Random -Maximum 100 -Minimum 1
+#         for($i = 0; $i -lt $classObj[$key].length; $i++){
+#             $random = Get-Random -Maximum 100 -Minimum 1
+#             if($random -gt $blankRatio){
+#                 writeNote $classObj[$key][$i]
+#                 Write-Host "class[key][i].y in WNFD"
+#                 Write-Host $classObj[$key][$i].y
+#             }
+#         }
+#     }
+# }
 
 if($mode -eq "drum"){
-    $classObj = createClassesForDrum
+    $classArray = createClassesForDrum
 } else {
     $classArray = createClasses
 }
@@ -194,11 +207,13 @@ for ($j=0; $j -lt $times; $j++){
     [System.Windows.Forms.SendKeys]::SendWait("{DELETE}")
     Start-Sleep -m $interval
 
-    if($mode -eq "drum"){
-        writeNotesForDrum
-    } else {
-        writeNotes
-    }
+    writeNotes
+
+    # if($mode -eq "drum"){
+    #     writeNotesForDrum
+    # } else {
+    #     writeNotes
+    # }
 
     # the interval for playing once
     [System.Windows.Forms.SendKeys]::SendWait(" ")
