@@ -1,7 +1,7 @@
+# Chord id name x
 [int] $id = $args[0]
-[int] $x = $args[1]
-[int] $y = $args[2]
-[int] $width = $args[3]
+[string] $name = $args[1]
+[int] $x = $args[2]
 $chords = @{
     "major" = @(0, 4, 7)
     "minor" = @(0, 3, 7)
@@ -38,17 +38,17 @@ $minorDiatonicChord = @("minor", "minor7-5", "major", "minor", "minor", "major",
 
 class Chord{
     [int] $id = 0
-    [int] $x = 960
-    [int] $y = 540
-    [int] $width = 96
+    [string] $name = ""
+    [int] $x = 0
+    $notes = @()
 
-    Chord($id, $x, $y, $width){
+    Chord($id, $name, $x){
         $this.id = $id
+        $this.name = $name
         $this.x = $x
-        $this.y = $y
-        $this.width = $width
+        $ys = 
     }
 }
 
-$cn = [Chord]::new($id, $x, $y, $width)
+$cn = [Chord]::new($id, $name, $x)
 return $cn
