@@ -22,10 +22,13 @@ $drumPattern = @{
     "kick" =  & "$($PSScriptRoot)\classes\Instrument.ps1" 3 "kick" 0 16 70 @(0)
 }
 
+# rhythm=@(0) and progress=@(0) are random, brankRatio is available only when rhythm is random
 $chordPattern = @{
     "width" = 1
-    "rhythm" = @(1, 1, 1, 1)
-    "progress" = @(6, 4, 5, 1)
+    "rhythm" = @(0,0,0,0,0,0,0,0)
+    "progress" = @(0, 0, 0, 0)
+    "scale" = "major"
+    "blankRatio" = 30
     "isArpeggio" = $FALSE
 }
 
@@ -74,20 +77,43 @@ $MouseMove = 0x00000001
 $MouseLeftDown = 0x0002
 $MouseLeftUp = 0x0004
 
+function getRhythmArray(){
+    # $rhythm = 
+    if(($chordPattern.rhythm[0] -eq 0) -and (($chordPattern.rhythm | Measure-Object -Sum).Sum -lt 1)){
+        $tempArray = @()
+        foreach($zero in $chordPattern.rhythm){
+            $random = Get-Random -Maximum 100 -Minimum 1
+            if($random -gt $chordPattern.blankRatio){
+                $tempArray += 1
+            } else {
+                $tempArray += 0
+            }
+        }
+        return $tempArray
+    } else {
+        return $chordPattern.rhythm
+    }
+}
+
 function createChordClasses(){
     $xSum = $startX
     $tempClassArray = @()
     $i = 0
+    $rhythm = getRhythmArray
     foreach($num in $chordPattern.progress){
         # Chord id nth name scale x width(1/x) $rhythm isArpeggio
-        $chord = & "$($PSScriptRoot)\classes\Chord.ps1" 0 $num "diatonic" "major" $xSum 1 $chordPattern.rhythm $chordPattern.isArpeggio
+        $tempNum = $num
+        if($num -eq 0){
+            $tempNum = Get-Random -Maximum 7 -Minimum 1
+        }
+        $chord = & "$($PSScriptRoot)\classes\Chord.ps1" 0 $tempNum "diatonic" $chordPattern.scale $xSum 1 $rhythm $chordPattern.isArpeggio
         $tempClassArray += $chord
         $chordWidthDot = [math]::Floor($barWidth / $chordPattern.width)
-        # $xSum += [math]::Floor($chordWidthDot / $chordPattern.rhythm.Length)
+        # $xSum += [math]::Floor($chordWidthDot / $rhythm.Length)
         $xSum += $chordWidthDot
-        # if($i % $chordPattern.rhythm.Length -eq 0){
+        # if($i % $rhythm.Length -eq 0){
         #     # add the correction number once per 1 bar
-        #     $correctionNum = $chordPattern.rhythm.Length % $chordWidthDot
+        #     $correctionNum = $rhythm.Length % $chordWidthDot
         #     $xSum += $correctionNum
         # }
         $i++
@@ -129,7 +155,9 @@ function createNoteClassesForChord(){
                 $tempW = ($barWidth * $chordPattern.width) / $chordClass.rhythm.Length
                 $tempX = $chordClass.x + ($tempW * ($n))
                 $noteClass = & "$($PSScriptRoot)\classes\Note.ps1" $i $tempX $tempY $tempW
-                $noteClasses += $noteClass
+                if($chordClasses.rhythm[$n] -eq 1){
+                    $noteClasses += $noteClass
+                }
                 $i++
                 # Write-Host "tempY in CCFC"
                 # Write-Host $tempY
@@ -194,13 +222,17 @@ function writeNotes(){
     }
 }
 
-if($mode -eq "chord"){
-    $classArray = createNoteClassesForChord
-} elseif($mode -eq "drum") {
-    $classArray = createNoteClassesForDrum
-} else {
-    $classArray = createNoteClasses
+function createNoteMain(){
+    if($mode -eq "chord"){
+        $tempArray = createNoteClassesForChord
+    } elseif($mode -eq "drum") {
+        $tempArray = createNoteClassesForDrum
+    } else {
+        $tempArray = createNoteClasses
+    }
+    return $tempArray
 }
+$classArray = createNoteMain
 
 # change window
 # add-type -assembly microsoft.visualbasic
@@ -218,6 +250,7 @@ for ($j=0; $j -lt $times; $j++){
     [System.Windows.Forms.SendKeys]::SendWait("{DELETE}")
     Start-Sleep -m $interval
 
+    $classArray = createNoteMain
     writeNotes
 
     # the interval for playing once
