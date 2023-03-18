@@ -6,7 +6,7 @@
 [double] $startY = 600
 [int] $maxBar = 4 # not for drum
 [int] $tempo = 120
-[int] $times = 1
+[int] $times = 3
 [int] $notes = $shortestNote * $maxBar
 [int] $interval = 1 # msec 
 [int] $blankRatio = 0 # X / 100
@@ -23,12 +23,14 @@ $drumPattern = @{
 }
 
 # rhythm=@(0) and progress=@(0) are random, brankRatio is available only when rhythm is random
+# isRandomOfRandom means 
 $chordPattern = @{
     "width" = 1
     "rhythm" = @(0,0,0,0,0,0,0,0)
     "progress" = @(0, 0, 0, 0)
     "scale" = "major"
-    "blankRatio" = 30
+    "blankRatio" = 0
+    "blankRatioEachY" = 70
     "isArpeggio" = $FALSE
 }
 
@@ -155,7 +157,8 @@ function createNoteClassesForChord(){
                 $tempW = ($barWidth * $chordPattern.width) / $chordClass.rhythm.Length
                 $tempX = $chordClass.x + ($tempW * ($n))
                 $noteClass = & "$($PSScriptRoot)\classes\Note.ps1" $i $tempX $tempY $tempW
-                if($chordClasses.rhythm[$n] -eq 1){
+                $random = Get-Random -Maximum 100 -Minimum 1
+                if(($chordClasses.rhythm[$n] -eq 1) -and ($random -gt $chordPattern.blankRatioEachY)){
                     $noteClasses += $noteClass
                 }
                 $i++
@@ -163,8 +166,8 @@ function createNoteClassesForChord(){
                 # Write-Host $tempY
                 # Write-Host "chordClass.x in CCFC"
                 # Write-Host $chordClass.x
-                Write-Host "noteClass.x in CCFC"
-                Write-Host $noteClass.x
+                # Write-Host "noteClass.x in CCFC"
+                # Write-Host $noteClass.x
                 # Write-Host "tempX in CCFC"
                 # Write-Host $tempX
                 # Write-Host "tempW in CCFC"

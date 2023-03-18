@@ -82,8 +82,8 @@ class Chord{
             # Write-Host "tempArray, this.scale"
             # Write-Host $tempArray
             # Write-Host $this.scale
-            # Write-Host "y"
-            # Write-Host $y
+            Write-Host "y"
+            Write-Host $y
             # Write-Host "nth"
             # Write-Host $nth
         }
