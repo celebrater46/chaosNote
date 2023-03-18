@@ -21,7 +21,13 @@ $drumPattern = @{
     "snare" =  & "$($PSScriptRoot)\classes\Instrument.ps1" 2 "snare" 2 4 50 @(0)
     "kick" =  & "$($PSScriptRoot)\classes\Instrument.ps1" 3 "kick" 0 16 30 @(0)
 }
-# Chord id nth name scale x
+
+$chordPattern = @{
+    "width" = 1
+    "rhythm" = @(1, 1, 1, 1)
+    "progress" = @(6, 4, 5, 1)
+    "isArpeggio" = $FALSE
+}
 
 [int[]] $upperLowerRatio = @(1, 1)
 [int[]] $upperNoteWeightRatio = @(6, 3, 2, 1, 1, 1, 1, 1)
@@ -68,6 +74,17 @@ $MouseMove = 0x00000001
 $MouseLeftDown = 0x0002
 $MouseLeftUp = 0x0004
 
+function createChordClasses(){
+    $xSum = $startX
+    $tempClassArray = @()
+    foreach($num in $chordPattern.progress){
+        # Chord id nth name scale x width(1/x) $rhythm isArpeggio
+        $chord = & "$($PSScriptRoot)\classes\Chord.ps1" 0 $num "diatonic" "major" 90 1 $chordPattern.rhythm $chordPattern.isArpeggio
+        $tempClassArray += $chord
+    }
+    return $tempClassArray
+}
+
 function createNoteArrayForOneInstrument($obj){
     $xSum = $startX
     $tempClassArray = @()
@@ -87,8 +104,29 @@ function createNoteArrayForOneInstrument($obj){
     return $tempClassArray # @()
 }
 
-function createClassesForDrum(){
+function createNoteClassesForChord(){
     $xSum = $startX
+    $chordClasses = createChordClasses
+    $noteClasses = @()
+    $i = 0
+    foreach($chordClass in $chordClasses){
+        foreach($y in $chordClass.ys){
+            $tempY = $y * $noteHeight
+            foreach($n in $chordClass.rhythm){
+                $tempW = $chordPattern.width / $chordClass.rhythm.Length
+                $noteClasses += & "$($PSScriptRoot)\classes\Note.ps1" $i $xSum $tempY $tempW
+                $i++
+            }
+        }
+        # $instrument = createNoteArrayForOneInstrument $drumPattern[$key]
+        # $tempClassArray += $instrument
+        $xSum += $barWidth / $chordPattern.width
+    }
+    return $noteClasses
+}
+
+function createNoteClassesForDrum(){
+    # $xSum = $startX
     foreach($key in $drumPattern.Keys){
         $instrument = createNoteArrayForOneInstrument $drumPattern[$key]
         $tempClassArray += $instrument
@@ -96,7 +134,7 @@ function createClassesForDrum(){
     return $tempClassArray
 }
 
-function createClasses(){
+function createNoteClasses(){
     $xSum = $startX
     $tempClassArray = @()
     for($i = 0; $i -lt $notes; $i++){
@@ -131,10 +169,12 @@ function writeNotes(){
     }
 }
 
-if($mode -eq "drum"){
-    $classArray = createClassesForDrum
+if($mode -eq "chord"){
+    $classArray = createNoteClassesForChord
+} elseif($mote -eq "drum") {
+    $classArray = createNoteClassesForDrum
 } else {
-    $classArray = createClasses
+    $classArray = createNoteClasses
 }
 
 # change window
