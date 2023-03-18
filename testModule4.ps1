@@ -75,7 +75,7 @@ $MouseLeftDown = 0x0002
 $MouseLeftUp = 0x0004
 
 function createChordClasses(){
-    $xSum = $startX
+    # $xSum = $startX
     $tempClassArray = @()
     foreach($num in $chordPattern.progress){
         # Chord id nth name scale x width(1/x) $rhythm isArpeggio
@@ -85,6 +85,7 @@ function createChordClasses(){
     return $tempClassArray
 }
 
+# For drum
 function createNoteArrayForOneInstrument($obj){
     $xSum = $startX
     $tempClassArray = @()
@@ -126,7 +127,7 @@ function createNoteClassesForChord(){
 }
 
 function createNoteClassesForDrum(){
-    # $xSum = $startX
+    $xSum = $startX
     foreach($key in $drumPattern.Keys){
         $instrument = createNoteArrayForOneInstrument $drumPattern[$key]
         $tempClassArray += $instrument
@@ -171,7 +172,7 @@ function writeNotes(){
 
 if($mode -eq "chord"){
     $classArray = createNoteClassesForChord
-} elseif($mote -eq "drum") {
+} elseif($mode -eq "drum") {
     $classArray = createNoteClassesForDrum
 } else {
     $classArray = createNoteClasses
