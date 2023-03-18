@@ -1,7 +1,7 @@
 [double] $barWidth = 441 # 80 / 128 ?
 [double] $noteHeight = 18
 [double] $shortestNote = 16 # 1 / 16, not pixel
-[double] $startX = 97
+[double] $startX = 90
 [double] $endX = 1845
 [double] $startY = 600
 [int] $maxBar = 4 # not for drum
@@ -13,28 +13,35 @@
 [string] $mode = "drum" # melody / drum / bass / chord / rhythmAndChord
 
 [int] $maxBarForDrum = 1
+# Instrument id name y notes blankRatio pattern[]
 $drumPattern = @{
-    "oh" = @{
-        "pattern" = @(1, 0)
-        "y" = 14
-        "isRandom" = $FALSE
-    }
-    "ch" = @{
-        "pattern" = @(1,1,1,1,1,1,1,1)
-        "y" = 6
-        "isRandom" = $FALSE
-    }
-    "snare" = @{
-        "pattern" = @(1,1,1,1,1,1,1,1)
-        "y" = 2
-        "isRandom" = $FALSE
-    }
-    "kick" = @{
-        "pattern" = @(1,1,1,1,1,1,1,1)
-        "y" = 0
-        "isRandom" = $FALSE
-    }
+    "oh" = & "$($PSScriptRoot)\classes\Instrument.ps1" 0 "oh" 14 0 0 @(1,0)
+    "ch" = & "$($PSScriptRoot)\classes\Instrument.ps1" 1 "ch" 6 16 30 @(0)
+    "snare" =  & "$($PSScriptRoot)\classes\Instrument.ps1" 2 "snare" 2 4 50 @(0)
+    "kick" =  & "$($PSScriptRoot)\classes\Instrument.ps1" 3 "kick" 0 16 30 @(0)
 }
+# $drumPattern = @{
+#     "oh" = @{
+#         "pattern" = @(1, 0)
+#         "y" = 14
+#         "isRandom" = $FALSE
+#     }
+#     "ch" = @{
+#         "pattern" = @(1,1,1,1,1,1,1,1)
+#         "y" = 6
+#         "isRandom" = $FALSE
+#     }
+#     "snare" = @{
+#         "pattern" = @(1,1,1,1,1,1,1,1)
+#         "y" = 2
+#         "isRandom" = $FALSE
+#     }
+#     "kick" = @{
+#         "pattern" = @(1,1,1,1,1,1,1,1)
+#         "y" = 0
+#         "isRandom" = $FALSE
+#     }
+# }
 
 [int[]] $upperLowerRatio = @(1, 1)
 [int[]] $upperNoteWeightRatio = @(6, 3, 2, 1, 1, 1, 1, 1)
