@@ -18,6 +18,6 @@ class Note{
 }
 
 $n = [Note]::new($id, $x, $y, $width)
-Write-Host "x in Note"
-Write-Host $n.x
+# Write-Host "x in Note"
+# Write-Host $n.x
 return $n

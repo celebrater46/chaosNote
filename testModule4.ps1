@@ -21,28 +21,6 @@ $drumPattern = @{
     "snare" =  & "$($PSScriptRoot)\classes\Instrument.ps1" 2 "snare" 2 4 50 @(0)
     "kick" =  & "$($PSScriptRoot)\classes\Instrument.ps1" 3 "kick" 0 16 30 @(0)
 }
-# $drumPattern = @{
-#     "oh" = @{
-#         "pattern" = @(1, 0)
-#         "y" = 14
-#         "isRandom" = $FALSE
-#     }
-#     "ch" = @{
-#         "pattern" = @(1,1,1,1,1,1,1,1)
-#         "y" = 6
-#         "isRandom" = $FALSE
-#     }
-#     "snare" = @{
-#         "pattern" = @(1,1,1,1,1,1,1,1)
-#         "y" = 2
-#         "isRandom" = $FALSE
-#     }
-#     "kick" = @{
-#         "pattern" = @(1,1,1,1,1,1,1,1)
-#         "y" = 0
-#         "isRandom" = $FALSE
-#     }
-# }
 
 [int[]] $upperLowerRatio = @(1, 1)
 [int[]] $upperNoteWeightRatio = @(6, 3, 2, 1, 1, 1, 1, 1)
@@ -106,29 +84,13 @@ function createNoteArrayForOneInstrument($obj){
         $xSum += $w
     }
     return $tempClassArray # @()
-    # return @{
-    #     "classArray" = $classArray # @()
-    #     "xSum" = $xSum #739
-    # }
 }
-
-# function createClassesForDrum(){
-#     $xSum = $startX
-#     $classObj = @{}
-#     foreach($key in $drumPattern.Keys){
-#         $tempObj = createNoteArrayForOneInstrument $drumPattern[$key] $xSum
-#         $classObj[$key] = $tempObj.classArray
-#     }
-#     return $classObj
-# }
 
 function createClassesForDrum(){
     $xSum = $startX
     foreach($key in $drumPattern.Keys){
         $instrument = createNoteArrayForOneInstrument $drumPattern[$key]
         $tempClassArray += $instrument
-        # Write-Host "instrument in CCFD"
-        # Write-Host $instrument
     }
     return $tempClassArray
 }
@@ -168,22 +130,6 @@ function writeNotes(){
     }
 }
 
-# function writeNotesForDrum(){
-#     Write-Host "class in WNFD"
-#     Write-Host $classObj
-#     foreach($key in $classObj.Keys){
-#         $random = Get-Random -Maximum 100 -Minimum 1
-#         for($i = 0; $i -lt $classObj[$key].length; $i++){
-#             $random = Get-Random -Maximum 100 -Minimum 1
-#             if($random -gt $blankRatio){
-#                 writeNote $classObj[$key][$i]
-#                 Write-Host "class[key][i].y in WNFD"
-#                 Write-Host $classObj[$key][$i].y
-#             }
-#         }
-#     }
-# }
-
 if($mode -eq "drum"){
     $classArray = createClassesForDrum
 } else {
@@ -208,12 +154,6 @@ for ($j=0; $j -lt $times; $j++){
     Start-Sleep -m $interval
 
     writeNotes
-
-    # if($mode -eq "drum"){
-    #     writeNotesForDrum
-    # } else {
-    #     writeNotes
-    # }
 
     # the interval for playing once
     [System.Windows.Forms.SendKeys]::SendWait(" ")
