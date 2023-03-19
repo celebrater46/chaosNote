@@ -10,6 +10,7 @@
 [int] $notes = $shortestNote * $maxBar
 [int] $interval = 1 # msec 
 [int] $blankRatio = 0 # X / 100
+[int] $deleteFlag = 1
 [string] $mode = "chord" # melody / drum / bass / chord / rhythmAndChord
 $classArray = @()
 
@@ -18,8 +19,8 @@ $classArray = @()
 $drumPattern = @{
     "oh" = & "$($PSScriptRoot)\classes\Instrument.ps1" 0 "oh" 14 0 0 @(1,0)
     "ch" = & "$($PSScriptRoot)\classes\Instrument.ps1" 1 "ch" 6 16 30 @(0)
-    "snare" =  & "$($PSScriptRoot)\classes\Instrument.ps1" 2 "snare" 2 4 50 @(0)
-    "kick" =  & "$($PSScriptRoot)\classes\Instrument.ps1" 3 "kick" 0 16 70 @(0)
+    "snare" =  & "$($PSScriptRoot)\classes\Instrument.ps1" 2 "snare" 2 4 0 @(0,1,0,1)
+    "kick" =  & "$($PSScriptRoot)\classes\Instrument.ps1" 3 "kick" 0 4 0 @(1,1,1,1)
 }
 
 # rhythm=@(0) and progress=@(0) are random, brankRatio is available only when rhythm is random
@@ -29,8 +30,8 @@ $chordPattern = @{
     "rhythm" = @(0,0,0,0,0,0,0,0)
     "progress" = @(0, 0, 0, 0)
     "scale" = "major"
-    "blankRatio" = 0
-    "blankRatioEachY" = 70
+    "blankRatio" = 30
+    "blankRatioEachY" = 0
     "isArpeggio" = $FALSE
 }
 
@@ -248,10 +249,12 @@ Start-Sleep -m 3000
 
 for ($j=0; $j -lt $times; $j++){
     # Wipe the old notes out
-    [System.Windows.Forms.SendKeys]::SendWait("^{a}")
-    Start-Sleep -m $interval
-    [System.Windows.Forms.SendKeys]::SendWait("{DELETE}")
-    Start-Sleep -m $interval
+    if($deleteFlag -eq 1){
+        [System.Windows.Forms.SendKeys]::SendWait("^{a}")
+        Start-Sleep -m $interval
+        [System.Windows.Forms.SendKeys]::SendWait("{DELETE}")
+        Start-Sleep -m $interval
+    }
 
     $classArray = createNoteMain
     writeNotes
