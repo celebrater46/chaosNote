@@ -1,0 +1,194 @@
+ttt
+
+https://docs.google.com/document/d/11DkbxhF1Y9soJr39S-pggq8rw-Gza5Q8MIxR6oWcQy0/edit
+
+
+VBScript でテキストファイルを読み込む・書き出す
+「FileSystemObject」というものを使うと、テキストファイルの読み書きができる。
+
+以下のようなスクリプトを fso.vbs などという名前で保存。inputText.txt はスクリプトと同じフォルダに置いておく。
+
+今回は特に文字列置換などはせず、inputText.txt の中身を1行ずつ読み込んで、outputText.txt というファイルを作って書き出すだけ。ファイルごとコピーしたときと結果は同じ状態だけど、テキストファイルの読み書きの基礎として…。
+
+
+Dim fso
+Set fso = WScript.CreateObject("Scripting.FileSystemObject")
+
+' 読み込みファイルの指定 (相対パスなのでこのスクリプトと同じフォルダに置いておくこと)
+Dim inputFile
+Set inputFile = fso.OpenTextFile("inputText.txt", 1, False, 0)
+
+' 書き出しファイルの指定 (今回は新規作成する)
+Dim outputFile
+Set outputFile = fso.OpenTextFile("outputText.txt", 2, True)
+
+' 読み込みファイルから1行ずつ読み込み、書き出しファイルに書き出すのを最終行まで繰り返す
+Do Until inputFile.AtEndOfStream
+  Dim lineStr
+  lineStr = inputFile.ReadLine
+  outputFile.WriteLine lineStr
+Loop
+
+' バッファを Flush してファイルを閉じる
+inputFile.Close
+outputFile.Close
+
+
+VBA から覚えたタチなので変数宣言を必ずしている。Option Explicit と書かなければ、Dim で変数宣言をしなくても動くっちゃ動く。あんまりよく調べてないまま書いてるけど、よく調べずに書いても何となく使えるのがスクリプト言語 (WSH) の良いところ。
+
+Scripting.FileSystemObject#OpenTextFile() の引数は以下のとおり。
+
+第1引数 : 読み込む・もしくは書き出すファイル名。相対パスか絶対パス。必須な引数は第1引数のみ。
+第2引数 : 読み書きのモード。1 (読み込み)、2 (書き込み)、8 (追加書き込み) の3つ。初期値は 1 (読み込み)。実際に使うときは定数を用意しておくとよい。
+第3引数 : ファイルがなかった時に新規作成するかどうか。初期値は False (ファイルがなくても新規作成しない)。
+第4引数 : 文字コードの指定。初期値は 0 (ASCII)。UTF-16 なら -1、システムのデフォルトエンコードなら -2。UTF-8 の読み書きはできない。
+第4引数の文字コードのことが書きたかった。そう、FileSystemObject では UTF-8 の読み書きができないのだ。つまり、inputText.txt のエンコードは ANSI などである必要がある。UTF-8 の読み書きの方法は別途紹介。
+
+
+
+
+
+VBScriptでファイルを全行読み込む場合は、 TextStreamオブジェクトのReadAll メソッドを使用します。
+
+ReadAllメソッドの書式は次の通りです。
+
+TSオブジェクト.ReadAll
+ファイルの全行を読み込み、 読み込んだ結果を返します。
+
+サイズの大きいファイルをReadAll メソッドで一気に読み込む場合は、 それなりにメモリを消費します。 ファイルサイズが大きい場合はReadLine メソッドで一行ずつ読み込む方が安全です。
+（関連記事：ファイルの読み込み（1行ずつ）ReadLine）
+
+次のサンプルコードではReadAllメソッドを使って テキストファイル「a.txt」を全行読み込み、読み込んだ内容を表示します。
+
+
+strFile = "d:\test\vbs\a.txt"
+
+'ファイルシステムオブジェクト作成
+Set objFS = CreateObject("Scripting.FileSystemObject")
+
+' ファイルオープン
+Set objText = objFS.OpenTextFile(strFIle)
+
+' 全行読み込む
+strText = objText.ReadAll
+
+' ファイルクローズ
+objText.Close
+
+' 表示
+WScript.Echo strText
+
+
+
+Lesson15 テキストファイルを読み書きする
+FileSystemObjectのオブジェクト2 -TextStreamオブジェクト-
+
+　このLessonでは、TextStreamオブジェクトを使って、テキストファイルを読み書きする話について述べる予定でしたが、諸事情により簡単にやらせていただきます。詳細については、VBSリファレンスを参照してください。
+
+　基本は、まずFileSystemObjectオブジェクトのOpenTextFile,CreateTextFileメソッド、あるいはFileオブジェクトのOpenAsTextStreamメソッドを使ってテキストファイルを開き、TextStreamオブジェクトを取得します。
+　ForReading(読取専用)で開いたTextStreamオブジェクトに対しては、Read,ReadLine,ReadAllメソッドを使うとテキストファイルの中身を文字列として取得できます。読み込む範囲を指定するときはSkip,SkipLineメソッドを使います。
+ForWriting(書き込み専用),ForAppending(ファイルの末尾に追加)で開いたTextStreamオブジェクトに対しては、Write,WriteLine,WriteBlankLinesメソッドを使って文字列を書き込むことができます。
+　TextStreamのどの位置に読み込みもしくは書き込みを行っているかを知るには、AtEndOfLine,AtEndOfStream,Column,Lineプロパティを使います。
+　最後に、開いたTextStreamを閉じるには、Closeメソッドを使います。
+
+　以下は、TextStreamオブジェクトの使い方を示した参考例です。ファイル名と検索文字列を指定すると、そのファイルを検索し、文字列が見つかった行番号とその行内容をresult.txtに書き出します。
+
+Const ForReading = 1,ForWriting = 2,ForAppending = 8 '定数の指定
+Set Fs = WScript.CreateObject("Scripting.FileSystemObject")
+
+sFile = InputBox("検索するファイル名を指定してください。")
+sWord = InputBox("検索する文字列を指定してください。")
+
+Set oTs1 = Fs.OpenTextFile(sFile,ForReading) 'ファイルを読み取りモードで開く
+Set oTs2 = Fs.CreateTextFile("result.txt",True) 'ファイルを作成する
+
+oTs2.WriteLine "ファイル= " & sFile 'ファイル名を書き込む
+oTs2.WriteLine "検索文字= " & sWord '検索文字を書き込む
+oTs2.WriteBlankLines 1 'ブランク行を1行書き込む
+
+Do Until oTs1.AtEndOfStream 'oTs1を末端まで読み込むまでループを繰り返す
+   sLine = oTs1.ReadLine '1行読み込む
+   If InStr(sLine,sWord)<>0 Then 'その行にもし検索文字があったら
+      oTs2.Write oTs1.Line - 1 & ": " & sLine & vbCrLf 'oTs2に見つかった行番号とその行の内容を書き込む
+   End If
+Loop
+
+oTs1.Close 'oTs1を閉じる
+oTs2.Close 'oTs2を閉じる
+
+MsgBox "検索結果をresult.txtに出力しました。"
+　このLessonでは、TextStreamオブジェクトを使って、テキストファイルを読み書きする方法を示しました。次回は、Dictionaryオブジェクトの使い方を説明します。
+
+
+
+VBScriptでは「FileSystemObject」を使用することで様々なファイル操作を行えます。
+今回は、ファイルの内容を１行ずつ読み込む方法を解説します。
+
+以下がソースコードになります。各処理の解説はコードの後に記載しています。
+使用方法は変数[targetFile]に読み込むファイルのパスとファイル名を記述して実行するだけです。
+
+
+Option Explicit
+
+' 読み込むファイルのパス
+Dim targetFile
+targetFile = ".\Sample.txt"
+
+' ファイルシステムオブジェクトの作成
+Dim fso
+Set fso = CreateObject("Scripting.FileSystemObject")
+
+' ファイルを読み取り専用で読み込み
+Dim stream
+Set stream  = fso.OpenTextFile(targetFile, 1)
+
+' １行ずつファイルを読み込む
+Do Until stream.AtEndOfStream
+	' 読み込んだ内容の表示
+	MsgBox(stream.ReadLine)
+Loop
+
+' テキストファイルを閉じる
+stream.Close
+Set stream = Nothing
+
+' ファイルシステムオブジェクトの破棄
+Set fso = Nothing
+
+
+
+１３行目にファイルを読み取り専用で読み込んでいます。
+１６行目から１９行目でファイルを１行ずつ読み込んで、読み込んだ内容をメッセージボックスで表示しています。
+
+記事は以上です、簡単に実装出来ましたね。
+テキストファイルの読み込みは、作業の自動化を図る際に使用頻度は高い処理だと思うので、是非ともマスターしましょう！
+
+
+テキストファイルに書き込む
+
+概要
+テキストファイルに書き込む
+初回のみ、タイトル行を書き込む
+
+code
+
+
+
+'Write to a text file
+
+'iomode
+Const ForReading = 1, ForWriting = 2, ForAppending = 8
+
+txtFile = "txtfile.txt"
+
+Set fso = WScript.CreateObject("Scripting.FileSystemObject")
+Set f = fso.OpenTextFile(txtFile, ForAppending, True)
+
+' header
+If f.line = 1 Then
+  f.WriteLine "title1,title2,title3"
+End If
+
+f.WriteLine "data1,data2,data3"
+
+f.Close
